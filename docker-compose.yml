@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Main database for messages, users, kanban tasks
+  postgres:
+    image: postgres:15
+    container_name: nestjs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - nestjs-network
+
+  dbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: nestjs-dbeaver
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      CB_SERVER_URL: http://localhost:8978
+      CB_ADMIN_NAME: ${DBEAVER_ADMIN_NAME:-admin}
+      CB_ADMIN_PASSWORD: ${DBEAVER_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8978:8978"
+    volumes:
+      - dbeaver_data:/opt/cloudbeaver/workspace
+    networks:
+      - nestjs-network
+
+  # Redis - Caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: nestjs-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - nestjs-network
+
+  # Zookeeper - Required for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: nestjs-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - nestjs-network
+
+  # Kafka - Message broker for microservices communication
+  # https://developer.confluent.io/confluent-tutorials/kafka-on-docker/?utm_medium=sem&utm_source=google&utm_campaign=ch.sem_br.nonbrand_tp.prs_tgt.dsa_mt.dsa_rgn.emea_lng.eng_dv.all_con.confluent-developer&utm_term=&creative=&device=c&placement=&gad_source=1&gad_campaignid=19560855027&gbraid=0AAAAADRv2c3EJ5sryyYSbMf_3tDaZ_KOt&gclid=Cj0KCQjww4TGBhCKARIsAFLXndSwJ4DvXQ8al89B0V_zSPIOKMyUEeT4qYnwI7VD7UEgNeFdoYwhU3oaAof0EALw_wcB
+  # link to undestand kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: nestjs-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - nestjs-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Elasticsearch - Search engine for messages, tasks, events
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: nestjs-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "${ELASTICSEARCH_PORT}:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - nestjs-network
+
+  # Kibana - Elasticsearch UI (optional, for development)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: nestjs-kibana
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - nestjs-network
+
+  # Kafka UI - Web interface for Kafka management (optional, for development)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: nestjs-kafka-ui
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - nestjs-network
+
+  # Redis Commander - Redis UI (optional, for development)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: nestjs-redis-commander
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
+    networks:
+      - nestjs-network
+
+volumes:
+  postgres_data:
+  dbeaver_data:
+  redis_data:
+  kafka_data:
+  zookeeper_data:
+  zookeeper_logs:
+  elasticsearch_data:
+  pgadmin_data:
+
+networks:
+  nestjs-network:
+    driver: bridge
