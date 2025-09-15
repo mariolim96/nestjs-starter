@@ -10,6 +10,7 @@ import config from '../config';
 import { TransformResponseInterceptor } from './interceptors/transform-response/transform-response.interceptor';
 import { LoggerService } from './logger/logger.service';
 import { LoggerMiddleware } from './logger/logger.middleware';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Global()
 @Module({
@@ -18,6 +19,7 @@ import { LoggerMiddleware } from './logger/logger.middleware';
       load: [config],
       isGlobal: true,
     }),
+    DatabaseModule,
   ],
   providers: [
     {
