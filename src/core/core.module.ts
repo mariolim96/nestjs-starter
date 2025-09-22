@@ -12,6 +12,9 @@ import { LoggerService } from './logger/logger.service';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { DatabaseModule } from 'src/database/database.module';
 import { DatabaseService } from 'src/database/database.service';
+import { CacheConfigModule } from './cache/cache.module';
+import { CacheService } from './cache/cache.service';
+import { CacheHealthService } from './cache/cache-health.service';
 
 @Global()
 @Module({
@@ -21,6 +24,7 @@ import { DatabaseService } from 'src/database/database.service';
       isGlobal: true,
     }),
     DatabaseModule,
+    CacheConfigModule,
   ],
   providers: [
     {
@@ -29,8 +33,10 @@ import { DatabaseService } from 'src/database/database.service';
     },
     LoggerService,
     DatabaseService,
+    CacheService,
+    CacheHealthService,
   ],
-  exports: [LoggerService, DatabaseService],
+  exports: [LoggerService, DatabaseService, CacheService, CacheHealthService],
 })
 export class CoreModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -39,35 +45,3 @@ export class CoreModule implements NestModule {
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
-
-// import {
-//   Global,
-//   MiddlewareConsumer,
-//   Module,
-//   RequestMethod,
-//   NestModule
-// } from '@nestjs/common';
-// import { ConfigModule } from '@nestjs/config';
-// import config from '../config';
-// import { APP_INTERCEPTOR } from '@nestjs/core';
-// import { TransformResponseInterceptor } from './interceptors/transform-response/transform-response.interceptor';
-// import { LoggerService } from './logger/logger.service';
-// import { LoggerMiddleware } from './logger/logger.middleware';
-
-// @Global()
-// @Module({
-//   imports: [
-//     ConfigModule.forRoot({
-//       isGlobal: true,
-//       load: [config],
-//     }),
-//   ],
-//   providers: [
-//     {
-//       provide: APP_INTERCEPTOR,
-//       useClass: TransformResponseInterceptor,
-//     },
-//     LoggerService, // <-- Add provider
-//   ],
-//   exports: [LoggerService], // <-- Add export
-// })

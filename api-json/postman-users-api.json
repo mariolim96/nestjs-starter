@@ -14,250 +14,553 @@
   ],
   "item": [
     {
-      "name": "CRUD Operations",
+      "name": "Users API",
       "item": [
         {
-          "name": "Create User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securePassword123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+          "name": "CRUD Operations",
+          "item": [
+            {
+              "name": "Create User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securePassword123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                },
+                "description": "Create a new user with username, email, and password"
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ]
+            {
+              "name": "Update User Info",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"john_doe_updated\",\n  \"email\": \"john.updated@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "1"]
+                },
+                "description": "Update user information (username and/or email)"
+              },
+              "response": []
             },
-            "description": "Create a new user with username, email, and password"
-          },
-          "response": []
+            {
+              "name": "Update User Password",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"newSecurePassword456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "1"]
+                },
+                "description": "Update user password only"
+              },
+              "response": []
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "1"]
+                },
+                "description": "Delete a user by their ID"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Update User Info",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"john_doe_updated\",\n  \"email\": \"john.updated@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+          "name": "Query Operations",
+          "item": [
+            {
+              "name": "Get All Users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                },
+                "description": "Retrieve all users from the database"
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1"
-              ]
+            {
+              "name": "Get Users Count",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/count",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "count"]
+                },
+                "description": "Get the total number of users in the database"
+              },
+              "response": []
             },
-            "description": "Update user information (username and/or email)"
-          },
-          "response": []
+            {
+              "name": "Get User by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "1"]
+                },
+                "description": "Retrieve a specific user by their ID"
+              },
+              "response": []
+            },
+            {
+              "name": "Get User by Email",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/email/john@example.com",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "email", "john@example.com"]
+                },
+                "description": "Find a user by their email address"
+              },
+              "response": []
+            },
+            {
+              "name": "Get User by Username",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/username/john_doe",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "username", "john_doe"]
+                },
+                "description": "Find a user by their username"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Update User Password",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"password\": \"newSecurePassword456\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1"
-              ]
-            },
-            "description": "Update user password only"
-          },
-          "response": []
-        },
-        {
-          "name": "Delete User",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1"
-              ]
-            },
-            "description": "Delete a user by their ID"
-          },
-          "response": []
+          "name": "Utility Operations",
+          "item": [
+            {
+              "name": "Check if User Exists",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/1/exists",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "1", "exists"]
+                },
+                "description": "Check if a user exists by their ID"
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
+
     {
-      "name": "Query Operations",
+      "name": "Cache API",
       "item": [
         {
-          "name": "Get All Users",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ]
+          "name": "Health Checks",
+          "item": [
+            {
+              "name": "Detailed Health Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/health",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "health"]
+                },
+                "description": "Get detailed health status with connection, read/write tests, and response time"
+              },
+              "response": []
             },
-            "description": "Retrieve all users from the database"
-          },
-          "response": []
+            {
+              "name": "Simple Health Check",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/health/simple",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "health", "simple"]
+                },
+                "description": "Simple boolean health check"
+              },
+              "response": []
+            },
+            {
+              "name": "Connection Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/health/connection",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "health", "connection"]
+                },
+                "description": "Get connection status with response time"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Get Users Count",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/count",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "count"
-              ]
+          "name": "Basic Operations",
+          "item": [
+            {
+              "name": "Get Value by Key",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/user:123",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "user:123"]
+                },
+                "description": "Get cached value by key"
+              },
+              "response": []
             },
-            "description": "Get the total number of users in the database"
-          },
-          "response": []
+            {
+              "name": "Set Value",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"user:123\",\n  \"value\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"user\"\n  },\n  \"ttl\": 300\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/set",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "set"]
+                },
+                "description": "Set key-value pair with optional TTL (in seconds)"
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Value by Key",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/user:123",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "user:123"]
+                },
+                "description": "Delete cached value by key"
+              },
+              "response": []
+            },
+            {
+              "name": "Clear All Cache",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache"]
+                },
+                "description": "Clear entire cache"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Get User by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1"
-              ]
+          "name": "Advanced Operations",
+          "item": [
+            {
+              "name": "Test Wrap Functionality",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"expensive_operation\",\n  \"data\": {\n    \"result\": \"computed_value\",\n    \"computation_time\": \"2.5s\"\n  },\n  \"ttl\": 600,\n  \"delay\": 1000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/wrap",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "wrap"]
+                },
+                "description": "Test wrap functionality with simulated async operation"
+              },
+              "response": []
             },
-            "description": "Retrieve a specific user by their ID"
-          },
-          "response": []
+            {
+              "name": "Generate Cache Key",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/keys/generate?prefix=user&parts=profile,123,settings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "keys", "generate"],
+                  "query": [
+                    {
+                      "key": "prefix",
+                      "value": "user"
+                    },
+                    {
+                      "key": "parts",
+                      "value": "profile,123,settings"
+                    }
+                  ]
+                },
+                "description": "Generate cache key with prefix and parts"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Get User by Email",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/email/john@example.com",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "email",
-                "john@example.com"
-              ]
+          "name": "Testing & Performance",
+          "item": [
+            {
+              "name": "Bulk Operations Test",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/cache/test/bulk",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "test", "bulk"]
+                },
+                "description": "Test bulk operations with different data types"
+              },
+              "response": []
             },
-            "description": "Find a user by their email address"
-          },
-          "response": []
+            {
+              "name": "Performance Test - Small",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operations\": 50,\n  \"keyPrefix\": \"perf_test_small\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/test/performance",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "test", "performance"]
+                },
+                "description": "Performance test with 50 operations"
+              },
+              "response": []
+            },
+            {
+              "name": "Performance Test - Large",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"operations\": 500,\n  \"keyPrefix\": \"perf_test_large\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/test/performance",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "test", "performance"]
+                },
+                "description": "Performance test with 500 operations"
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Get User by Username",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/username/john_doe",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "username",
-                "john_doe"
-              ]
+          "name": "Example Use Cases",
+          "item": [
+            {
+              "name": "Cache User Profile",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"user:profile:123\",\n  \"value\": {\n    \"id\": 123,\n    \"username\": \"john_doe\",\n    \"email\": \"john@example.com\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"avatar\": \"https://example.com/avatar.jpg\",\n    \"lastLogin\": \"2025-09-21T10:30:00Z\"\n  },\n  \"ttl\": 900\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/set",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "set"]
+                },
+                "description": "Cache user profile data for 15 minutes"
+              },
+              "response": []
             },
-            "description": "Find a user by their username"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Utility Operations",
-      "item": [
-        {
-          "name": "Check if User Exists",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/1/exists",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1",
-                "exists"
-              ]
+            {
+              "name": "Cache Session Data",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"session:abc123xyz\",\n  \"value\": {\n    \"userId\": 123,\n    \"role\": \"user\",\n    \"permissions\": [\"read\", \"write\"],\n    \"loginTime\": \"2025-09-21T10:30:00Z\",\n    \"ipAddress\": \"192.168.1.100\"\n  },\n  \"ttl\": 3600\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/set",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "set"]
+                },
+                "description": "Cache session data for 1 hour"
+              },
+              "response": []
             },
-            "description": "Check if a user exists by their ID"
-          },
-          "response": []
+            {
+              "name": "Cache API Response",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key\": \"api:users:list:page:1\",\n  \"value\": {\n    \"data\": [\n      {\"id\": 1, \"name\": \"John\", \"email\": \"john@example.com\"},\n      {\"id\": 2, \"name\": \"Jane\", \"email\": \"jane@example.com\"}\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"total\": 25\n    },\n    \"cachedAt\": \"2025-09-21T10:30:00Z\"\n  },\n  \"ttl\": 300\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cache/set",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cache", "set"]
+                },
+                "description": "Cache API response for 5 minutes"
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }

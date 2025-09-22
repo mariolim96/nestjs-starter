@@ -18,36 +18,49 @@ services:
     networks:
       - nestjs-network
 
-  dbeaver:
-    image: dbeaver/cloudbeaver:latest
-    container_name: nestjs-dbeaver
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    environment:
-      CB_SERVER_URL: http://localhost:8978
-      CB_ADMIN_NAME: ${DBEAVER_ADMIN_NAME:-admin}
-      CB_ADMIN_PASSWORD: ${DBEAVER_ADMIN_PASSWORD:-admin}
-    ports:
-      - "8978:8978"
-    volumes:
-      - dbeaver_data:/opt/cloudbeaver/workspace
-    networks:
-      - nestjs-network
-
-  # Redis - Caching and session management
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: nestjs-redis
+  # dbeaver:
+  #   image: dbeaver/cloudbeaver:latest
+  #   container_name: nestjs-dbeaver
   #   restart: unless-stopped
+  #   depends_on:
+  #     - postgres
+  #   environment:
+  #     CB_SERVER_URL: http://localhost:8978
+  #     CB_ADMIN_NAME: ${DBEAVER_ADMIN_NAME:-admin}
+  #     CB_ADMIN_PASSWORD: ${DBEAVER_ADMIN_PASSWORD:-admin}
   #   ports:
-  #     - "${REDIS_PORT}:6379"
-  #   command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+  #     - "8978:8978"
   #   volumes:
-  #     - redis_data:/data
+  #     - dbeaver_data:/opt/cloudbeaver/workspace
   #   networks:
   #     - nestjs-network
 
+  # Redis - Caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: nestjs-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - nestjs-network
+
+  # Redis Commander - Redis UI (optional, for development)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: nestjs-redis-commander
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
+    networks:
+      - nestjs-network
   # # Zookeeper - Required for Kafka
   # zookeeper:
   #   image: confluentinc/cp-zookeeper:7.4.0
@@ -146,24 +159,12 @@ services:
   #   networks:
   #     - nestjs-network
 
-  # # Redis Commander - Redis UI (optional, for development)
-  # redis-commander:
-  #   image: rediscommander/redis-commander:latest
-  #   container_name: nestjs-redis-commander
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - redis
-  #   ports:
-  #     - "8081:8081"
-  #   environment:
-  #     REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
-  #   networks:
-  #     - nestjs-network
+
 
 volumes:
   postgres_data:
   dbeaver_data:
-  # redis_data:
+  redis_data:
   # kafka_data:
   # zookeeper_data:
   # zookeeper_logs:
