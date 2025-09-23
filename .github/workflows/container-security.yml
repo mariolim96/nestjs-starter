@@ -1,0 +1,160 @@
+name: 🔒 Container Security Scan
+
+on:
+  workflow_run:
+    workflows: ["🐳 Build Docker Image"]
+    types:
+      - completed
+  schedule:
+    # Run security scan daily at 4 AM UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Docker image to scan (leave empty for latest)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  container-scan:
+    name: 🔒 Scan Docker Image
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Determine image to scan
+        id: image
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Workflow run head branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "GitHub ref name: ${{ github.ref_name }}"
+          echo "GitHub SHA: ${{ github.sha }}"
+          
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.image }}" ]; then
+            echo "image=${{ github.event.inputs.image }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" == "workflow_run" ]; then
+            # For workflow_run events, use the head branch from the triggering workflow
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ -n "$BRANCH" ]; then
+              echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$BRANCH" >> $GITHUB_OUTPUT
+            else
+              # Fallback to master if head_branch is not available
+              echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Selected image: $(cat $GITHUB_OUTPUT | grep image= | cut -d'=' -f2-)"
+
+      - name: 🔑 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔍 Verify image exists
+        id: verify
+        run: |
+          IMAGE="${{ steps.image.outputs.image }}"
+          echo "Checking if image exists: $IMAGE"
+          
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "✅ Image found: $IMAGE"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Image not found: $IMAGE"
+            echo "exists=false" >> $GITHUB_OUTPUT
+            
+            # Try alternative tags
+            REPO_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+            echo "🔍 Looking for alternative tags..."
+            
+            # Try with 'master' tag
+            if docker manifest inspect "$REPO_NAME:master" > /dev/null 2>&1; then
+              echo "✅ Found alternative: $REPO_NAME:master"
+              echo "image=$REPO_NAME:master" >> $GITHUB_OUTPUT
+              echo "exists=true" >> $GITHUB_OUTPUT
+            # Try with 'main' tag  
+            elif docker manifest inspect "$REPO_NAME:main" > /dev/null 2>&1; then
+              echo "✅ Found alternative: $REPO_NAME:main"
+              echo "image=$REPO_NAME:main" >> $GITHUB_OUTPUT
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ No alternative tags found"
+            fi
+          fi
+
+      - name: 🔍 Run Trivy vulnerability scanner
+        if: steps.verify.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.verify.outputs.image || steps.image.outputs.image }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📊 Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && steps.verify.outputs.exists == 'true'
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: 🔍 Run Trivy for JSON report
+        if: steps.verify.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.verify.outputs.image || steps.image.outputs.image }}
+          format: 'json'
+          output: 'trivy-report.json'
+
+      - name: 📁 Upload scan results
+        if: always() && steps.verify.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-security-scan-results
+          path: |
+            trivy-results.sarif
+            trivy-report.json
+          retention-days: 30
+
+      - name: ⚠️ Handle missing image
+        if: steps.verify.outputs.exists == 'false'
+        run: |
+          echo "## ⚠️ Container Security Scan Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** Docker image not found" >> $GITHUB_STEP_SUMMARY
+          echo "**Attempted image:** \`${{ steps.image.outputs.image }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Suggestion:** Check if the Docker build workflow completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "**Alternative:** Run this workflow manually with a specific image tag" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📊 Security summary
+        if: always() && steps.verify.outputs.exists == 'true'
+        run: |
+          SCANNED_IMAGE="${{ steps.verify.outputs.image || steps.image.outputs.image }}"
+          echo "## 🔒 Container Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`$SCANNED_IMAGE\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Scanner:** Trivy" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f trivy-report.json ]; then
+            CRITICAL=$(jq '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | .VulnerabilityID' trivy-report.json | wc -l)
+            HIGH=$(jq '.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH") | .VulnerabilityID' trivy-report.json | wc -l)
+            MEDIUM=$(jq '.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM") | .VulnerabilityID' trivy-report.json | wc -l)
+            
+            echo "**Critical:** $CRITICAL" >> $GITHUB_STEP_SUMMARY
+            echo "**High:** $HIGH" >> $GITHUB_STEP_SUMMARY
+            echo "**Medium:** $MEDIUM" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -27,13 +27,8 @@ import { CacheHealthService } from './cache-health.service';
         }
 
         // Create Redis connection URL
-        const redisUrl =  `redis://${redisConfig.password ? `:${redisConfig.password}@` : ''}${redisConfig.host}:${redisConfig.port}`;
+        const redisUrl = `redis://${redisConfig.password ? `:${redisConfig.password}@` : ''}${redisConfig.host}:${redisConfig.port}`;
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        // const cache = new CacheableMemory({
-        //   lruSize: cacheConfig.max,
-        //   ttl: cacheConfig.ttl * 1000, // Convert to milliseconds
-        // }) as KeyvStoreAdapter | KeyvOptions | Map<any, any>;
         const keyv = new Keyv(new KeyvRedis(redisUrl));
         keyv.on('error', (err) => console.error('Keyv connection error:', err));
         // const redis = new KeyvRedis(redisUrl);

@@ -1,0 +1,107 @@
+name: 🧹 Cache Cleanup
+
+on:
+  schedule:
+    # Run every Sunday at 4 AM UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup-cache:
+    name: 🧹 Cleanup Old Caches
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🧹 Clear old caches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            let deletedCount = 0;
+            let totalSize = 0;
+            
+            try {
+              // Get all caches
+              const caches = await github.rest.actions.getActionsCacheList({
+                owner,
+                repo,
+                per_page: 100
+              });
+              
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              
+              console.log(`Found ${caches.data.actions_caches.length} caches`);
+              
+              // Delete caches older than 30 days or over size limit
+              for (const cache of caches.data.actions_caches) {
+                const cacheDate = new Date(cache.created_at);
+                const shouldDelete = cacheDate < thirtyDaysAgo;
+                
+                if (shouldDelete) {
+                  try {
+                    await github.rest.actions.deleteActionsCacheById({
+                      owner,
+                      repo,
+                      cache_id: cache.id
+                    });
+                    deletedCount++;
+                    totalSize += cache.size_in_bytes;
+                    console.log(`Deleted cache ${cache.key} (${cache.size_in_bytes} bytes) from ${cacheDate}`);
+                  } catch (error) {
+                    console.log(`Failed to delete cache ${cache.id}: ${error.message}`);
+                  }
+                }
+              }
+              
+              // Also clean up caches for closed PRs
+              const pullRequests = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'closed',
+                per_page: 50
+              });
+              
+              for (const pr of pullRequests.data) {
+                const prCaches = caches.data.actions_caches.filter(cache => 
+                  cache.ref && cache.ref.includes(`refs/pull/${pr.number}/`)
+                );
+                
+                for (const cache of prCaches) {
+                  try {
+                    await github.rest.actions.deleteActionsCacheById({
+                      owner,
+                      repo,
+                      cache_id: cache.id
+                    });
+                    deletedCount++;
+                    totalSize += cache.size_in_bytes;
+                    console.log(`Deleted PR cache ${cache.key} for closed PR #${pr.number}`);
+                  } catch (error) {
+                    console.log(`Failed to delete PR cache ${cache.id}: ${error.message}`);
+                  }
+                }
+              }
+              
+            } catch (error) {
+              console.log(`Cache cleanup failed: ${error.message}`);
+            }
+            
+            const sizeMB = Math.round(totalSize / (1024 * 1024) * 100) / 100;
+            console.log(`Total caches deleted: ${deletedCount}`);
+            console.log(`Total space freed: ${sizeMB} MB`);
+            
+            return { deletedCount, sizeMB };
+
+      - name: 📊 Cache cleanup summary
+        run: |
+          echo "## 🧹 Cache Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Retention:** 30 days" >> $GITHUB_STEP_SUMMARY
+          echo "**Cleanup:** Old caches and closed PR caches removed" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Cleanup completed" >> $GITHUB_STEP_SUMMARY

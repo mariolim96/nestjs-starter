@@ -1,0 +1,97 @@
+name: 📦 Create Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create release for'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 📦 Create GitHub Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📝 Generate changelog
+        id: changelog
+        run: |
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ steps.tag.outputs.tag }}^ 2>/dev/null || echo "")
+          
+          # Generate changelog
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## Changes since $PREVIOUS_TAG" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..${{ steps.tag.outputs.tag }} >> $GITHUB_OUTPUT
+          else
+            echo "## Initial Release" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s (%h)" ${{ steps.tag.outputs.tag }} >> $GITHUB_OUTPUT
+          fi
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Get Docker image tags
+        id: docker
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "image_latest=${IMAGE}:latest" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE}:${{ steps.tag.outputs.tag }}" >> $GITHUB_OUTPUT
+
+      - name: 📦 Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## 🐳 Docker Images
+            
+            You can pull the Docker images using:
+            
+            ```bash
+            # Latest version
+            docker pull ${{ steps.docker.outputs.image_latest }}
+            
+            # Specific version
+            docker pull ${{ steps.docker.outputs.image_tag }}
+            ```
+            
+            ## 🚀 Deployment
+            
+            This release has been automatically deployed to production.
+            
+            ## 📋 Verification
+            
+            - [ ] All tests passing
+            - [ ] Security scans completed
+            - [ ] Deployment successful
+            - [ ] Smoke tests passed
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}

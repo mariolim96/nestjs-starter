@@ -1,0 +1,121 @@
+name: ✨ Feature Request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! 🚀
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🤔 Problem Statement
+      description: Is your feature request related to a problem? Please describe the problem you're trying to solve.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: Describe the solution you'd like to see implemented.
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternatives Considered
+      description: Describe any alternative solutions or features you've considered.
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 📊 Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be beneficial
+        - High - Important for my use case
+        - Critical - Blocking my workflow
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: ⚙️ Estimated Complexity
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Simple - Minor changes
+        - Medium - Moderate development effort
+        - Complex - Significant development effort
+        - Unknown - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: 🎯 Use Case
+      description: Describe your specific use case for this feature.
+      placeholder: Explain how you would use this feature and what benefits it would provide.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: What specific requirements must be met for this feature to be considered complete?
+      placeholder: |
+        - [ ] Requirement 1
+        - [ ] Requirement 2
+        - [ ] Requirement 3
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: 🎨 Mockups/Wireframes
+      description: If applicable, add mockups, wireframes, or examples to help explain your feature.
+      placeholder: Drag and drop images here or paste image URLs...
+
+  - type: textarea
+    id: technical-details
+    attributes:
+      label: 🛠️ Technical Details
+      description: Any technical considerations, implementation ideas, or constraints?
+      placeholder: Share any technical thoughts or implementation ideas...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: ℹ️ Additional Context
+      description: Add any other context, links, or references about the feature request here.
+      placeholder: Any additional information that might be helpful...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing feature requests before creating this one
+          required: true
+        - label: This feature would benefit other users, not just my specific use case
+          required: true
+        - label: I am willing to help with testing once implemented
+          required: false
+        - label: I am willing to contribute to the implementation
+          required: false

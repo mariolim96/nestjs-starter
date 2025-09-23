@@ -1,0 +1,126 @@
+name: 👥 Auto Assign
+
+on:
+  pull_request:
+    types: [opened]
+  issues:
+    types: [opened]
+
+jobs:
+  assign-reviewers:
+    name: 👥 Auto-assign Reviewers
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 👥 Assign reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            
+            // Define team members and their expertise areas
+            const reviewers = {
+              'backend': ['mariolim96'], // Add your team members
+              'frontend': ['mariolim96'],
+              'devops': ['mariolim96'],
+              'security': ['mariolim96'],
+              'database': ['mariolim96']
+            };
+            
+            // Auto-assign based on files changed
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            let assignees = new Set();
+            
+            files.forEach(file => {
+              const filename = file.filename.toLowerCase();
+              
+              // Backend changes
+              if (filename.includes('.ts') && !filename.includes('.spec.') && !filename.includes('test')) {
+                reviewers.backend.forEach(reviewer => {
+                  if (reviewer !== author) assignees.add(reviewer);
+                });
+              }
+              
+              // DevOps changes
+              if (filename.includes('docker') || filename.includes('.yml') || filename.includes('.yaml')) {
+                reviewers.devops.forEach(reviewer => {
+                  if (reviewer !== author) assignees.add(reviewer);
+                });
+              }
+              
+              // Database changes
+              if (filename.includes('schema') || filename.includes('migration') || filename.includes('drizzle')) {
+                reviewers.database.forEach(reviewer => {
+                  if (reviewer !== author) assignees.add(reviewer);
+                });
+              }
+              
+              // Security changes
+              if (filename.includes('auth') || filename.includes('security') || filename.includes('jwt')) {
+                reviewers.security.forEach(reviewer => {
+                  if (reviewer !== author) assignees.add(reviewer);
+                });
+              }
+            });
+            
+            if (assignees.size > 0) {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: Array.from(assignees).slice(0, 2) // Limit to 2 reviewers
+              });
+            }
+
+  assign-issues:
+    name: 👥 Auto-assign Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+    
+    steps:
+      - name: 👥 Assign issues to maintainers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.issue.title.toLowerCase();
+            const body = context.payload.issue.body?.toLowerCase() || '';
+            const labels = context.payload.issue.labels.map(label => label.name.toLowerCase());
+            
+            // Define maintainers by area
+            const maintainers = {
+              'bug': ['mariolim96'],
+              'security': ['mariolim96'],
+              'enhancement': ['mariolim96'],
+              'documentation': ['mariolim96'],
+              'question': ['mariolim96']
+            };
+            
+            let assignee = null;
+            
+            // Assign based on labels or content
+            if (labels.includes('security') || title.includes('security') || body.includes('vulnerability')) {
+              assignee = maintainers.security[0];
+            } else if (labels.includes('bug') || title.includes('bug') || title.includes('error')) {
+              assignee = maintainers.bug[0];
+            } else if (labels.includes('enhancement') || title.includes('feature')) {
+              assignee = maintainers.enhancement[0];
+            } else if (labels.includes('documentation') || title.includes('docs')) {
+              assignee = maintainers.documentation[0];
+            } else if (labels.includes('question')) {
+              assignee = maintainers.question[0];
+            }
+            
+            if (assignee) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                assignees: [assignee]
+              });
+            }
