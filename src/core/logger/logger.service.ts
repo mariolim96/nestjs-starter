@@ -1,7 +1,7 @@
 import { Injectable, LoggerService as NestLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as winston from 'winston';
-import chalk from 'chalk';
+import pc from 'picocolors';
 
 @Injectable()
 export class LoggerService implements NestLogger {
@@ -16,15 +16,15 @@ export class LoggerService implements NestLogger {
 
     // Custom color scheme
     const colors = {
-      info: chalk.green,
-      error: chalk.red.bold,
-      warn: chalk.yellow,
-      debug: chalk.blue,
-      verbose: chalk.magenta,
-      timestamp: chalk.gray,
-      context: chalk.cyan.bold,
-      message: chalk.white,
-      meta: chalk.gray.italic,
+      info: pc.green,
+      error: pc.red,
+      warn: pc.yellow,
+      debug: pc.blue,
+      verbose: pc.magenta,
+      timestamp: pc.gray,
+      context: pc.cyan,
+      message: pc.white,
+      meta: pc.gray,
     };
 
     // Choose a format based on the environment
