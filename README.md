@@ -1,62 +1,71 @@
-# NestJS Starter Project
+# NestJS Advanced Starter Project
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-<p align="center">A comprehensive NestJS starter project with advanced logging, microservices infrastructure, and development tools pre-configured.</p>
+<p align="center">A production-ready NestJS starter template with enterprise-grade features including advanced logging, caching, database management, comprehensive testing, and a complete CI/CD pipeline.</p>
 
-## Description
+## 🚀 Features
 
-This is a production-ready NestJS starter template that includes:
-
-- **Advanced Logging System** - Custom [`LoggerService`](src/core/logger/logger.service.ts) with Winston integration and colorful console output
+### Core Infrastructure
+- **Advanced Logging System** - Custom [`LoggerService`](src/core/logger/logger.service.ts) with Winston integration and performance monitoring
 - **Request/Response Middleware** - Comprehensive HTTP logging with [`LoggerMiddleware`](src/core/logger/logger.middleware.ts)
-- **Microservices Infrastructure** - Docker Compose setup with PostgreSQL, Redis, Kafka, Elasticsearch
-- **Development Tools** - pgAdmin, Kafka UI, Redis Commander, Kibana
-- **Security** - Helmet integration and input validation
-- **Testing** - Unit and E2E test setup
+- **Caching Layer** - Redis-based caching with health monitoring via [`CacheService`](src/core/cache/cache.service.ts)
+- **Database Management** - Drizzle ORM with PostgreSQL and automated migrations
+- **Response Transformation** - Standardized API responses via [`TransformResponseInterceptor`](src/core/interceptors/transform-response/transform-response.interceptor.ts)
 
-## Features
+### Development & Production
+- **Docker Ecosystem** - Complete development environment with PostgreSQL, Redis, Kafka, Elasticsearch
+- **Development Tools** - pgAdmin, Redis Commander, Kafka UI, Kibana, DBeaver
+- **Security** - Helmet integration, input validation, and comprehensive security scanning
+- **Testing Infrastructure** - Unit, integration, and E2E tests with coverage reporting
+- **API Documentation** - Auto-generated Swagger documentation
 
-### 🚀 Core Features
-- **Enhanced Logging**: Request tracking, performance monitoring, and error handling
-- **Response Transformation**: Standardized API responses with [`TransformResponseInterceptor`](src/core/interceptors/transform-response/transform-response.interceptor.ts)
-- **Configuration Management**: Environment-based configuration with validation
-- **Input Validation**: DTO validation using class-validator
+### CI/CD Pipeline
+- **18 Specialized Workflows** - Each with single responsibility for maintainability
+- **Multi-environment Deployment** - Staging and production environments
+- **Security First** - Multiple security scanning layers and dependency monitoring
+- **Automated Maintenance** - Dependency updates, security monitoring, and cleanup
 
-### 🛠️ Infrastructure
-- **PostgreSQL**: Main database with pgAdmin interface
-- **Redis**: Caching and session management
-- **Kafka**: Message broker for microservices communication
-- **Elasticsearch**: Search engine and log aggregation
-- **Docker Compose**: Complete development environment
+## 📁 Project Structure
 
-### 📊 Monitoring & Development
-- **Request ID Tracking**: Unique request identification across services
-- **Performance Monitoring**: Response time categorization and alerts
-- **Sensitive Data Filtering**: Automatic redaction of passwords and tokens
-- **Development UIs**: Web interfaces for all services
+```
+src/
+├── core/                    # Core application infrastructure
+│   ├── cache/              # Redis caching service and health checks
+│   ├── interceptors/       # Global interceptors (response transformation)
+│   └── logger/             # Advanced logging with Winston
+├── config/                  # Environment-based configuration
+├── database/               # Database configuration and schemas
+│   ├── schema/             # Drizzle ORM schemas (users, channels, etc.)
+│   └── database.service.ts # Database connection service
+├── users/                  # User management module
+│   ├── dto/               # Data transfer objects
+│   └── users.controller.ts # REST API endpoints
+└── app.module.ts          # Main application module
+```
 
-## Project Setup
+## 🚦 Quick Start
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- pnpm
+- Node.js 22.x
+- pnpm 9.x
 - Docker and Docker Compose
 
 ### Installation
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd nest-start
-```
+1. **Clone and setup**
+   ```bash
+   git clone <repository-url>
+   cd nest-start
+   cp .env.example .env
+   ```
 
 2. **Install dependencies**
-```bash
-pnpm install
-```
+   ```bash
+   pnpm install
+   ```
 
 3. **Environment setup**
 ```bash
@@ -169,32 +178,51 @@ After running `docker-compose up -d`, access these services:
 | **Kibana** | http://localhost:5601 | No auth |
 | **DBeaver** | http://localhost:8978 | `admin:admin` |
 
-## API Endpoints
+Optional services (uncomment in docker-compose.yml):
+- **Kafka UI** | http://localhost:8080 | No auth |
+- **Elasticsearch** | http://localhost:9200 | No auth |
+- **Kibana** | http://localhost:5601 | No auth |
 
-### Basic Endpoints
+## 🛠️ Development
 
-```typescript
-// GET / - Health check
-curl http://localhost:3000/
+### Available Scripts
 
-// POST / - Create user example
-curl -X POST http://localhost:3000/ \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "secret123"}'
+```bash
+# Development
+pnpm run start:dev          # Start with Docker services and hot reload
+pnpm run start:debug        # Debug mode
+pnpm run build              # Production build
+pnpm run start:prod         # Production mode
+
+# Database
+pnpm run db:generate        # Generate Drizzle migrations
+pnpm run db:migrate         # Run migrations
+pnpm run db:push           # Push schema to database
+pnpm run db:studio         # Open Drizzle Studio
+
+# Testing
+pnpm run test              # Unit tests
+pnpm run test:watch        # Watch mode
+pnpm run test:cov          # Coverage report
+pnpm run test:e2e          # End-to-end tests
+
+# Code Quality
+pnpm run lint              # ESLint with auto-fix
+pnpm run format            # Prettier formatting
+pnpm run ci:validate       # Full CI validation locally
 ```
 
-### Response Format
+### Database Schema
 
-All API responses are transformed using [`TransformResponseInterceptor`](src/core/interceptors/transform-response/transform-response.interceptor.ts):
+The project includes a comprehensive database schema for a chat/collaboration platform:
 
-```json
-{
-  "data": "actual response data",
-  "statusCode": 200
-}
-```
+- [`users`](src/database/schema/users.schema.ts) - User management
+- [`channels`](src/database/schema/channels.schema.ts) - Chat channels
+- [`messages`](src/database/schema/messages.schema.ts) - Chat messages
+- [`kanbanBoards`](src/database/schema/kanban-boards.schema.ts) - Project management
+- [`externalEvents`](src/database/schema/externalEvents.schema.ts) - External integrations
 
-## Configuration
+## 🔧 Configuration
 
 ### Environment Variables
 
@@ -221,6 +249,11 @@ KAFKA_BROKERS=localhost:9092
 
 # Logging
 LOG_LEVEL=info
+
+# External Integrations
+JIRA_API_URL=https://your-domain.atlassian.net
+TRELLO_API_KEY=your-trello-api-key
+DEEPL_API_KEY=your-deepl-api-key
 ```
 
 ### Logger Configuration
@@ -271,28 +304,107 @@ pnpm run start:prod
 
 ### Docker Deployment
 
+See [DOCKER.md](DOCKER.md) for comprehensive Docker deployment guide.
+
 ```bash
-# Build and run with Docker
+# Production deployment
+docker-compose -f docker-compose.prod.yml up -d
+
+# Or build custom image
 docker build -t nestjs-app .
 docker run -p 3000:3000 nestjs-app
 ```
 
-## Contributing
+## 🔄 CI/CD Pipeline
+
+The project includes 18 specialized GitHub Actions workflows. See [CICD.md](CICD.md) for complete documentation.
+
+### Key Workflows
+- **Code Quality**: Linting, testing, security scanning
+- **Build & Deploy**: Docker building, security scanning, multi-environment deployment
+- **Automation**: Auto-labeling, PR analysis, dependency updates
+- **Maintenance**: Cleanup, monitoring, statistics
+
+### Branch Protection
+
+Configure these required status checks:
+- 🔍 ESLint & Prettier
+- 🧪 Unit & E2E Tests  
+- 🔒 Dependency Security Scan
+- 🔍 CodeQL Analysis
+- 🐳 Build & Push Docker Image
+
+## 📊 API Endpoints
+
+### Users API
+- `GET /users` - List all users
+- `GET /users/:id` - Get user by ID
+- `POST /users` - Create new user
+- `PATCH /users/:id` - Update user
+- `DELETE /users/:id` - Delete user
+
+### Cache API
+- `GET /cache/health` - Cache health status
+- `POST /cache/set` - Set cache value
+- `GET /cache/get/:key` - Get cache value
+- `DELETE /cache/del/:key` - Delete cache value
+
+### Health Checks
+- `GET /health` - Application health
+- `GET /cache/health/simple` - Simple cache health
+
+## 🧪 Testing
+
+The project includes comprehensive testing:
+
+- **Unit Tests**: Service and controller testing with mocks
+- **Integration Tests**: Database and external service integration
+- **E2E Tests**: Full application workflow testing
+- **Coverage Reports**: Automated coverage tracking and reporting
+
+Example test files:
+- [`users.controller.spec.ts`](src/users/users.controller.spec.ts)
+- [`users.service.spec.ts`](src/users/users.service.spec.ts)
+
+## 📚 Additional Documentation
+
+- [Docker Guide](DOCKER.md) - Complete Docker setup and deployment
+- [CI/CD Documentation](CICD.md) - Comprehensive CI/CD pipeline guide
+- [Project Architecture](project-info.md) - Detailed system architecture
+- [Setup Scripts](scripts/) - Utility scripts for development
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-feature`
 3. Make your changes and add tests
 4. Run the test suite: `pnpm run test`
-5. Commit your changes: `git commit -am 'Add new feature'`
-6. Push to the branch: `git push origin feature/new-feature`
-7. Submit a pull request
+5. Run CI validation: `pnpm run ci:validate`
+6. Commit your changes: `git commit -am 'Add new feature'`
+7. Push to the branch: `git push origin feature/new-feature`
+8. Submit a pull request
 
-## Support
+### Development Guidelines
+
+- Follow the existing code style
+- Add tests for new features
+- Update documentation as needed
+- Ensure CI/CD pipeline passes
+- Use conventional commit messages
+
+## 🔗 Resources
 
 - [NestJS Documentation](https://docs.nestjs.com)
-- [Discord Community](https://discord.gg/G7Qnnhy)
+- [Drizzle ORM](https://orm.drizzle.team)
 - [GitHub Issues](../../issues)
+- [Pull Request Template](.github/pull_request_template.md)
+
+## 📄 License
+
+This project is [UNLICENSED](LICENSE).
 
 ---
 
 **Happy coding! 🚀**
+
+Built with ❤️ using NestJS, TypeScript, and modern development practices.
